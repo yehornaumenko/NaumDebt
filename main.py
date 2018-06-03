@@ -56,7 +56,7 @@ def register():
 
 @app.route('/confirmation', methods = ['POST'])
 def confirmation():
-
+    pass
 
 
 if __name__ == '__main__':
