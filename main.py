@@ -1,21 +1,23 @@
 from flask import Flask, request
 from pymongo import MongoClient
 import smtplib
+import secrets
 import config #file that is stored wherever it's comfortable. In this case in the same folder.
 
 client = MongoClient()
 app = Flask(__name__)
-availableSymbols = [chr(i) for i in range(48,58)] + [chr(i) for i in range(65,91)] + [chr(i) for i in range(97,123)] #a-z + A-Z + 0-9
+availableSymbols = [chr(i) for i in range(48, 58)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(97, 123)] #a-z + A-Z + 0-9
 smtpPort = 587
 smtpHost = "smtp.gmail.com"
+IP = "\nhttp://www.178.150.137.228:5303" #we can change port
 
-def confirmLink():
-    pass
+def confirmLink(token):
+    return IP+"/confirm?token="+str(token)
 
 def validation(data):
-    if len(data)<6:
+    if len(data) < 6:
         return "Too short. Should be longer than 6 symbols"
-    if len(data)>25:
+    if len(data) > 25:
         return "Too long. Should be shorter than 25 symbols"
     for i in range(len(data)):
         if i not in availableSymbols:
@@ -29,7 +31,8 @@ def register():
     thisEmail = request.values["email"]
     thisLogin = request.values["login"]
     thisPass = request.values["password"]
-    dictUser = {"email": thisEmail, "login": thisLogin, "password": thisPass}
+    token = secrets.token_hex(16)
+    dictUser = {"email": thisEmail, "login": thisLogin, "password": thisPass, "token": token, "status": "inactive"}
 
     currentUser = usersCol.find_one({"email": thisEmail})
     if currentUser:
@@ -44,8 +47,10 @@ def register():
             smtpObj = smtplib.SMTP(smtpHost, smtpPort)
             smtpObj.starttls()
             smtpObj.login(config.email, config.password)
-            smtpObj.sendmail(config.email, thisEmail, config.confirmText + confirmLink())
+            print(config.confirmText + confirmLink(token))
+            smtpObj.sendmail(config.email, thisEmail, config.confirmText + confirmLink(token))
         except:
+            print("EXCEPTION")
             return "Bad email."
         else:
             usersCol.insert_one(dictUser)
@@ -54,10 +59,17 @@ def register():
     else:
         return resultOfValidation[0]+'\n'+resultOfValidation[1]
 
-@app.route('/confirmation', methods = ['POST'])
+@app.route('/confirmation', methods = ['GET'])
 def confirmation():
-    pass
+    db = client.debts
+    usersCol = db.users
+    thisToken = request.values["token"]
+
+    currentUser = usersCol.find_one({"token": thisToken})
+
+    if currentUser:
+        usersCol.update_one({"_id": currentUser["_id"]}, {"$set": {"status": "active"}})
 
 
 if __name__ == '__main__':
-    app.run(debug=False, port=3000)
+    app.run(debug=False, port=5303)
