@@ -2,11 +2,12 @@ from flask import Flask, request
 from pymongo import MongoClient
 import smtplib
 import secrets
+import string
 import config #file that is stored wherever it's comfortable. In this case in the same folder.
 
 client = MongoClient()
 app = Flask(__name__)
-availableSymbols = [chr(i) for i in range(48, 58)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(97, 123)] #a-z + A-Z + 0-9
+availableSymbols = list(string.ascii_letters + string.digits) #a-z + A-Z + 0-9
 smtpPort = 587
 smtpHost = "smtp.gmail.com"
 IP = "\nhttp://178.150.137.228:5303" #we can change port
