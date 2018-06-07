@@ -9,10 +9,10 @@ app = Flask(__name__)
 availableSymbols = [chr(i) for i in range(48, 58)] + [chr(i) for i in range(65, 91)] + [chr(i) for i in range(97, 123)] #a-z + A-Z + 0-9
 smtpPort = 587
 smtpHost = "smtp.gmail.com"
-IP = "\nhttp://www.178.150.137.228:5303" #we can change port
+IP = "\nhttp://178.150.137.228:5303" #we can change port
 
 def confirmLink(token):
-    return IP+"/confirm?token="+str(token)
+    return IP+"/confirmation?token="+str(token)
 
 def validation(data):
     if len(data) < 6:
@@ -50,7 +50,7 @@ def register():
             print(config.confirmText + confirmLink(token))
             smtpObj.sendmail(config.email, thisEmail, config.confirmText + confirmLink(token))
         except:
-            print("EXCEPTION")
+            print("EMAIL EXCEPTION")
             return "Bad email."
         else:
             usersCol.insert_one(dictUser)
@@ -69,7 +69,10 @@ def confirmation():
 
     if currentUser:
         usersCol.update_one({"_id": currentUser["_id"]}, {"$set": {"status": "active"}})
+        return "You've activated your account."
+    else:
+        return "Wrond token. May be you changed link in email."
 
 
 if __name__ == '__main__':
-    app.run(debug=False, port=5303)
+    app.run(host = '0.0.0.0', debug=False, port=5303)
