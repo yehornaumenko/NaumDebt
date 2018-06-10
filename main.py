@@ -39,7 +39,7 @@ def doLogin(user, collection, password):
 def validation(data):
     if len(data) < MIN_TEXT_LENGTH:
         return "Too short. Should be longer than 6 symbols"
-    if len(data) > MAX:
+    if len(data) > MAX_TEXT_LENGTH:
         return "Too long. Should be shorter than 25 symbols"
     for i in range(len(data)):
         if i not in availableSymbols:
